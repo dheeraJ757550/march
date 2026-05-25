@@ -1,0 +1,14 @@
+.vs
+bin
+obj
+*.user
+*.suo
+*.log
+*.md
+*.env
+.env
+**/.git
+**/.gitignore
+**/node_modules
+**/npm-debug.log
+**/yarn-error.log
