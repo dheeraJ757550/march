@@ -1,0 +1,32 @@
+<div class="register-container">
+  <p>Register</p>
+
+  <input [(ngModel)]="user.username" placeholder="Username">
+ @if (!otpSent) {
+  <button (click)="sendOtp()" [disabled]="otpSent && !canResend">
+  {{ otpSent ? 'OTP Sent' : 'Send OTP' }}
+</button>
+ }
+
+<!-- <div *ngIf="otpSent"> -->
+    @if (otpSent) {
+       @if (!canResend) {
+      <p>Resend OTP in {{ timer }} seconds</p>
+    }
+
+    @if (canResend) {
+      <button (click)="resendOtp()">Resend OTP</button>
+    }
+        <div>
+  <input [(ngModel)]="user.otp" placeholder="Enter OTP">
+  <input [(ngModel)]="user.password" type="password" placeholder="Password">
+
+  <button (click)="register()">Verify & Register</button>
+</div>
+    }
+    <asl-google-signin-button type="standard" size="large" theme="outline" text="signin_with" ></asl-google-signin-button>
+  <button class="login-btn" routerLink="/login">
+    Already have an Account? Login
+  </button>
+<!-- </div> -->
+

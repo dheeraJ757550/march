@@ -1,0 +1,101 @@
+<div class="dashboard">
+
+  <!-- Top Nav -->
+  <div class="topbar">
+    <h2>Dashboard</h2>
+    <div class="nav-actions">
+      <button (click)="goToInterview()">AI Interview Prep</button>
+      <button (click)="logout()" class="logout-btn">Logout</button>
+    </div>
+  </div>
+
+  <!-- Toggle Buttons -->
+  <div class="toggle-tabs">
+    <button 
+      [class.active]="activeTab === 'employees'" 
+      (click)="setTab('employees')">
+      Employees
+    </button>
+    <button 
+      [class.active]="activeTab === 'chat'" 
+      (click)="setTab('chat')">
+      Assistant
+    </button>
+  </div>
+
+  <!-- Employee Section -->
+  <div *ngIf="activeTab === 'employees'" class="section">
+
+    <div class="form-group">
+      <input [(ngModel)]="newEmployee.name" placeholder="Name">
+      <input [(ngModel)]="newEmployee.department" placeholder="Department">
+      <input [(ngModel)]="newEmployee.salary" placeholder="Salary" type="number">
+      <button (click)="saveEmployee()">{{ isEditMode ? 'Update' : 'Add' }}</button>
+    </div>
+
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Department</th>
+        <th>Salary</th>
+        <th>Action</th>
+      </tr>
+      <tr *ngFor="let emp of employees">
+        <td>{{ emp.name }}</td>
+        <td>{{ emp.department }}</td>
+        <td>{{ emp.salary }}</td>
+        <td>
+          <button (click)="editEmployee(emp)">Edit</button>
+          <button (click)="deleteEmployee(emp.id)">Delete</button>
+        </td>
+      </tr>
+    </table>
+
+  </div>
+
+  <!-- Chat Section -->
+  <div *ngIf="activeTab === 'chat'" class="section">
+
+    <div class="chat-wrap">
+
+      <div class="chat-header">
+        <div class="bot-avatar">🤖</div>
+        <div>
+          <p class="bot-name">Assistant</p>
+          <span class="online-status">● Online</span>
+        </div>
+      </div>
+
+      <div class="chat-body" #chatBody>
+        <ng-container *ngFor="let msg of messages">
+          <div class="msg-row" [class.user]="msg.sender === 'user'">
+            <div class="mini-avatar" [class.bot-icon]="msg.sender === 'bot'">
+              {{ msg.sender === 'user' ? 'You' : '🤖' }}
+            </div>
+            <div class="bubble"
+                 [class.user]="msg.sender === 'user'"
+                 [class.bot]="msg.sender === 'bot'"
+                 [innerHTML]="msg.text">
+            </div>
+          </div>
+        </ng-container>
+
+        <div class="msg-row" *ngIf="isTyping">
+          <div class="mini-avatar">🤖</div>
+          <div class="typing">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input">
+        <input [(ngModel)]="userInput" placeholder="Ask something..." (keyup.enter)="sendMessage()" />
+        <button (click)="sendMessage()">➤</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

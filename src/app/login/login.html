@@ -1,0 +1,43 @@
+<div class="login-container">
+  <h2>Login</h2>
+
+  <!-- Tabs -->
+  <div class="tab-group">
+    <button [class.active]="loginMode === 'credentials'" (click)="switchMode('credentials')">Password</button>
+    <button [class.active]="loginMode === 'email'" (click)="switchMode('email')">Email OTP</button>
+    <button [class.active]="loginMode === 'phone'" (click)="switchMode('phone')">Phone OTP</button>
+  </div>
+
+  <!-- Normal Login -->
+  <div *ngIf="loginMode === 'credentials'">
+    <input [(ngModel)]="user.username" placeholder="Username" />
+    <input [(ngModel)]="user.password" placeholder="Password" type="password" />
+    <button class="login-btn" (click)="login()">Login</button>
+  </div>
+
+  <!-- Email OTP -->
+  <div *ngIf="loginMode === 'email'">
+    <input [(ngModel)]="emailInput" placeholder="Enter your email" />
+    <button class="login-btn" (click)="sendEmailOtp()">Send OTP</button>
+    <div *ngIf="otpSent">
+      <input [(ngModel)]="otp" placeholder="Enter OTP" />
+      <input [(ngModel)]="password" placeholder="Set Password" type="password" />
+      <button class="login-btn" (click)="verifyEmailOtp()">Verify & Register</button>
+    </div>
+  </div>
+
+  <!-- Phone OTP -->
+  <div *ngIf="loginMode === 'phone'">
+    <input [(ngModel)]="phoneNumber" placeholder="+91XXXXXXXXXX" />
+    <button class="login-btn" (click)="sendPhoneOtp()">Send OTP</button>
+    <div *ngIf="otpSent">
+      <input [(ngModel)]="otp" placeholder="Enter OTP" />
+      <input [(ngModel)]="password" placeholder="Set Password" type="password" />
+      <button class="login-btn" (click)="verifyPhoneOtp()">Verify & Register</button>
+    </div>
+  </div>
+
+  <button class="signup-btn" routerLink="/register">
+    SignUp ... Create New Account
+  </button>
+</div>

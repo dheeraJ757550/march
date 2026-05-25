@@ -1,0 +1,94 @@
+<div class="interview-container">
+<button (click)="GoToDashboard()">Go To Dashboard</button>
+  <!-- Step 1: Setup -->
+  <div *ngIf="step === 1" class="card">
+    <h2>AI Interview Prep</h2>
+    <p class="subtitle">Get personalized interview questions based on your role</p>
+
+    <label>Job Role</label>
+    <input [(ngModel)]="jobRole" placeholder="e.g. Frontend Developer, Data Scientist" />
+
+    <label>Years of Experience</label>
+    <input [(ngModel)]="experience" type="number" placeholder="e.g. 2" />
+
+    <button class="primary-btn" (click)="startInterview()" [disabled]="!jobRole || !experience || isLoading">
+      {{ isLoading ? '⏳ Generating Questions...' : 'Generate Questions ➤' }}
+    </button>
+  </div>
+
+  <!-- Step 2: Questions -->
+  <div *ngIf="step === 2" class="card">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width]="progressPercent + '%'"></div>
+    </div>
+
+    <!-- Controls -->
+    <div style="text-align: right; margin-bottom: 8px;">
+      <button class="mute-btn" (click)="toggleMute()">
+        {{ isMuted ? '🔇 Unmute' : '🔊 Mute' }}
+      </button>
+      <button class="mute-btn" (click)="speakQuestion(questions[currentIndex])">
+        🔁 Repeat
+      </button>
+    </div>
+
+    <p class="question-count">Question {{ currentIndex + 1 }} of {{ questions.length }}</p>
+    <h3 class="question-text">{{ questions[currentIndex] }}</h3>
+
+    <!-- Answer Box -->
+    <div class="answer-box">
+      <textarea [(ngModel)]="currentAnswer"
+                placeholder="Type your answer or click 🎤 to speak..."
+                rows="5">
+      </textarea>
+
+      <!-- Mic Button -->
+      <button class="mic-btn" (click)="toggleListening()" [class.listening]="isListening">
+        {{ isListening ? '⏹ Stop Speaking' : '🎤 Speak Answer' }}
+      </button>
+
+      <!-- Listening Indicator -->
+      <div class="listening-indicator" *ngIf="isListening">
+        <span class="pulse"></span> Listening... speak your answer
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="secondary-btn" (click)="skipQuestion()">Skip</button>
+      <button class="primary-btn" (click)="submitAnswer()" [disabled]="!currentAnswer.trim() || isLoading">
+        {{ isLoading ? '⏳ Rating...' : 'Submit Answer ➤' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 3: Results -->
+  <div *ngIf="step === 3" class="card">
+    <h2>Your Results</h2>
+    <div class="score-circle">
+      <span class="score-number">{{ overallScore }}</span>
+      <span class="score-label">/ 10</span>
+    </div>
+
+    <div class="result-item" *ngFor="let result of results; let i = index">
+      <div class="result-header">
+        <span class="q-number">Q{{ i + 1 }}</span>
+        <span class="score-badge" [class.good]="result.score >= 7"
+                                  [class.average]="result.score >= 4 && result.score < 7"
+                                  [class.poor]="result.score < 4">
+          {{ result.score }}/10
+        </span>
+      </div>
+      <p class="result-question">{{ result.question }}</p>
+      <p class="result-feedback" [innerHTML]="result.feedback"></p>
+    </div>
+
+    <!-- Weak Areas -->
+    <div class="weak-areas" *ngIf="weakAreas.length > 0">
+      <h3>Areas to Improve</h3>
+      <div class="tag" *ngFor="let area of weakAreas">{{ area }}</div>
+    </div>
+
+    <button class="primary-btn" (click)="restart()">Try Again ↺</button>
+  </div>
+
+</div>
