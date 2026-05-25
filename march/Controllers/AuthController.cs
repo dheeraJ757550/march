@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Auth;
+using Google.Apis.Auth;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using march.Data;
@@ -11,7 +12,8 @@ using MimeKit;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Google.Apis.Auth;
+using Twilio;
+using Twilio.Rest.Api.V2010.Account;
 
 namespace march.Controllers
 {
@@ -86,6 +88,65 @@ namespace march.Controllers
             SendEmail(email, otp);
 
             return Ok(new { message = "OTP sent" });
+        }
+
+        [HttpPost("send-otp-phone")]
+        public IActionResult SendOtpPhone([FromBody] string phoneNumber)
+        {
+            var otp = GenerateOtp();
+
+            // Store OTP (reusing your existing OtpStore)
+            OtpStore.OtpList.RemoveAll(x => x.Email == phoneNumber);
+            OtpStore.OtpList.Add(new OtpEntry
+            {
+                Email = phoneNumber,  // reusing Email field for phone
+                Otp = otp,
+                ExpiryTime = DateTime.Now.AddMinutes(5)
+            });
+
+            // Send SMS
+            TwilioClient.Init(
+                _config["Twilio:AccountSid"],
+                _config["Twilio:AuthToken"]
+            );
+
+            MessageResource.Create(
+                body: $"Your OTP is: {otp}",
+                from: new Twilio.Types.PhoneNumber(_config["Twilio:FromNumber"]),
+                to: new Twilio.Types.PhoneNumber(phoneNumber)
+            );
+
+            return Ok(new { message = "OTP sent to phone" });
+        }
+
+
+        // ✅ VERIFY PHONE OTP + REGISTER
+        [HttpPost("verify-otp-phone-register")]
+        public IActionResult VerifyOtpPhoneRegister([FromBody] RegisterRequest data)
+        {
+            string phone = data.Username;
+            string password = data.Password;
+            string otp = data.Otp;
+
+            var entry = OtpStore.OtpList
+                .FirstOrDefault(x => x.Email == phone && x.Otp == otp);
+
+            if (entry == null || entry.ExpiryTime < DateTime.Now)
+                return BadRequest("Invalid or expired OTP");
+
+            var user = new User
+            {
+                Username = phone,
+                Password = password
+            };
+
+            _context.Users.Add(user);
+            _context.SaveChanges();
+
+            OtpStore.OtpList.Remove(entry);
+
+            var token = GenerateToken(user);
+            return Ok(new { token });
         }
 
         // ✅ VERIFY OTP + REGISTER
@@ -184,6 +245,6 @@ namespace march.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-       
+
     }
 }

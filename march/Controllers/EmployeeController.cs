@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace march.Controllers
 {
-  
+
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeController : ControllerBase
@@ -27,27 +27,27 @@ namespace march.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            var employee=_repo.GetById(id);
-            if(employee == null) return NotFound();
+            var employee = _repo.GetById(id);
+            if (employee == null) return NotFound();
             return Ok(employee);
         }
-       
+
         [HttpPost]
-        public IActionResult Create (Employee emp)
+        public IActionResult Create(Employee emp)
         {
             _repo.Add(emp);
             return Ok(emp);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id , Employee emp)
+        public IActionResult Update(int id, Employee emp)
         {
             var existing = _repo.GetById(id);
             if (existing == null) return NotFound();
 
-            existing.Name=emp.Name;
-            existing.Salary=emp.Salary;
-            existing.Department=emp.Department;
+            existing.Name = emp.Name;
+            existing.Salary = emp.Salary;
+            existing.Department = emp.Department;
             _repo.Update(existing);
             return Ok(existing);
 
@@ -57,8 +57,8 @@ namespace march.Controllers
         public IActionResult DeleteById(int id)
         {
             var emp = _repo.GetById(id);
-            if(emp == null) return NotFound();
-           _repo.Delete(emp);
+            if (emp == null) return NotFound();
+            _repo.Delete(emp);
             return Ok();
         }
 

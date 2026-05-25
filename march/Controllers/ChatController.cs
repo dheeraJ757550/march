@@ -28,7 +28,7 @@ namespace march.Controllers
 
             // Updated to a valid 2026 model
             var model = "gemini-3-flash-preview";
-            var apiKey = "AIzaSyDwO7A0JQKi-HxjkN061WVOMwOeuY7cCPU";
+            var apiKey = "AIzaSyATQ7CkWLsl0ZUCo-L2NqxMBf0I8R8zoGg";
 
             // Ensure you are using v1beta or v1 as per current documentation
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";

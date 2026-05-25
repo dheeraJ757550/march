@@ -1,9 +1,10 @@
-using march.Data;
+﻿using march.Data;
 using march.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Twilio;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,14 +19,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
                 errorNumbersToAdd: null);
         }));
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers();  // ← only once
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddHttpClient();
 
 builder.Services.AddCors(options =>
 {
@@ -35,32 +33,31 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader());
 });
 
+// Twilio
+var twilioSid = builder.Configuration["Twilio:AccountSid"];
+var twilioToken = builder.Configuration["Twilio:AuthToken"];
+TwilioClient.Init(twilioSid, twilioToken);
 
-
-//jwt
-
+// JWT
 var key = builder.Configuration["Jwt:Key"];
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        };
+    });
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddHttpClient();
-builder.Services.AddControllers();
-var app = builder.Build();  
+var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -68,10 +65,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseCors("AllowAll");
-
+app.UseCors("AllowAll");         // ← first
+app.UseAuthentication();         // ← second
+app.UseAuthorization();          // ← third
 app.MapControllers();
 
 app.Run();
