@@ -16,7 +16,7 @@ export interface Employee{
 })
 
 export class EmployeeService {
-  private apiUrl = 'https://localhost:7288/api/Employee';
+  private apiUrl = 'https://prep-interview-4kyo.onrender.com/api/Employee';
   constructor (private http:HttpClient){}
 
 getEmployees(): Observable<Employee[]>{

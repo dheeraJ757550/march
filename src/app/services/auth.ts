@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class Auth {
-  private apiUrl = 'https://localhost:7288/api/auth';
+  private apiUrl = 'https://prep-interview-4kyo.onrender.com/api/auth';
   constructor(private http: HttpClient) {}
 
   register(user:any){

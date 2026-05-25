@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core';
 })
 export class Chat {
   
-  private apiUrl = 'https://localhost:7288/api/Chat';
+  private apiUrl = 'https://prep-interview-4kyo.onrender.com/api/Chat';
 
   constructor(private http: HttpClient) {}
 
