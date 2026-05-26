@@ -10,6 +10,7 @@ export const routes: Routes = [
 
     {path:'login',component:Login},
     {path:'register',component:Register},
-    {path:'employees',component:Employeec,canActivate:[authGuard]},
+    // {path:'employees',component:Employeec,canActivate:[authGuard]},
+  {path:'employees',component:Employeec},
     { path: 'interview', component: InterviewPrep }
 ];
