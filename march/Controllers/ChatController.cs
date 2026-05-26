@@ -10,6 +10,7 @@ namespace march.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class ChatController : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory;
