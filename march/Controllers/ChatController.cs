@@ -1,4 +1,5 @@
 ﻿using march.Data;
+﻿using Microsoft.AspNetCore.Authorization;
 using march.models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,12 +15,14 @@ namespace march.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
         // It's best practice to use IHttpClientFactory in ASP.NET Core
 
-        public ChatController(IHttpClientFactory httpClientFactory)
+        public ChatController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -28,8 +31,9 @@ namespace march.Controllers
             string userMessage = request.Message;
 
             // Updated to a valid 2026 model
-            var model = "gemini-3-flash-preview";
-            var apiKey = "AIzaSyBu4wrMsLAdxTIk48oH3gDk8rUUfpOs1Ak";
+            
+            var apiKey = _configuration["Gemini:ApiKey"];
+            var model = _configuration["Gemini:Model"];
 
             // Ensure you are using v1beta or v1 as per current documentation
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
