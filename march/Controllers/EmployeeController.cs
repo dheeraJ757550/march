@@ -10,6 +10,7 @@ namespace march.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeRepository _repo;
