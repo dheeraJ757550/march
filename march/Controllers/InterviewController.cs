@@ -114,64 +114,100 @@ namespace march.Controllers
         }
 
         private async Task<string> CallGemini(string prompt)
-        {
-            Console.WriteLine("🔵 CallGemini started");
+ {
+     var apiKey = _configuration["Gemini:ApiKey"];
+     var model = _configuration["Gemini:Model"];
 
-            var apiKey = _configuration["Gemini:ApiKey"];
-            var model = _configuration["Gemini:Model"];
+     if (string.IsNullOrEmpty(apiKey))
+         throw new Exception("ApiKey is missing in appsettings.json");
 
-            Console.WriteLine("🔵 ApiKey: " + apiKey);
-            Console.WriteLine("🔵 Model: " + model);
+     var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
-            if (string.IsNullOrEmpty(apiKey))
-                throw new Exception("ApiKey is missing in appsettings.json");
+     var body = new
+     {
+         contents = new[]
+         {
+     new { parts = new[] { new { text = prompt } } }
+ },
+         generationConfig = new { temperature = 0.7, maxOutputTokens = 1000 }
+     };
 
-            if (string.IsNullOrEmpty(model))
-                throw new Exception("Model is missing in appsettings.json");
+     var client = new HttpClient();
+     client.Timeout = TimeSpan.FromMinutes(5);
 
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+     var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
+     var response = await client.PostAsync(url, content);
+     var json = await response.Content.ReadAsStringAsync();
 
-            Console.WriteLine("🔵 URL: " + url);
+     Console.WriteLine("STATUS: " + response.StatusCode);
+     Console.WriteLine("RESPONSE: " + json);
 
-            var body = new
-            {
-                contents = new[]
-                {
-            new { parts = new[] { new { text = prompt } } }
-        },
-                generationConfig = new { temperature = 0.7, maxOutputTokens = 1000 }
-            };
+     // 503 — High demand
+     if ((int)response.StatusCode == 503 || (int)response.StatusCode == 500)
+     {
+         SendAlertEmail(
+             "⚠️ Gemini 503 - High Demand",
+             $"Gemini returned 503 High Demand.\n\nResponse: {json}\n\nTime: {DateTime.Now}"
+         );
+         throw new Exception("Gemini is currently unavailable due to high demand.");
+     }
 
-            Console.WriteLine("🔵 Creating HttpClient...");
+     // 429 — Quota exhausted
+     if ((int)response.StatusCode == 429)
+     {
+         SendAlertEmail(
+             "❌ Gemini Quota Exhausted",
+             $"Your Gemini API quota is exhausted.\n\nResponse: {json}\n\nTime: {DateTime.Now}"
+         );
+         throw new Exception("Gemini quota exhausted.");
+     }
 
-            var client = new HttpClient();
-            client.Timeout = TimeSpan.FromMinutes(5);
+     // Other errors
+     if (!response.IsSuccessStatusCode)
+     {
+         SendAlertEmail(
+             "❌ Gemini API Error",
+             $"Gemini returned error {response.StatusCode}.\n\nResponse: {json}\n\nTime: {DateTime.Now}"
+         );
+         throw new Exception("Gemini API error: " + json);
+     }
 
-            var json_body = JsonConvert.SerializeObject(body);
-            Console.WriteLine("🔵 Request body: " + json_body);
+     var parsed = JsonConvert.DeserializeObject<dynamic>(json);
 
-            var content = new StringContent(json_body, Encoding.UTF8, "application/json");
+     if (parsed?.candidates == null || parsed.candidates.Count == 0)
+         throw new Exception("No candidates in response: " + json);
 
-            Console.WriteLine("🔵 Calling Gemini API...");
+     return (string)parsed.candidates[0].content.parts[0].text;
+ }
 
-            var response = await client.PostAsync(url, content);
+ private void SendAlertEmail(string subject, string body)
+ {
+     try
+     {
+         Console.WriteLine("📧 Sending alert email...");
 
-            Console.WriteLine("🔵 STATUS: " + response.StatusCode);
+         var email = new MimeMessage();
+         email.From.Add(new MailboxAddress("My App Alert", _configuration["Email:From"]));
+         email.To.Add(MailboxAddress.Parse("chhabradheeru75@gmail.com"));  // ← your email
+         email.Subject = subject;
+         email.Body = new TextPart("plain") { Text = body };
 
-            var json = await response.Content.ReadAsStringAsync();
+         using var smtp = new MailKit.Net.Smtp.SmtpClient();
+         smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+         smtp.Authenticate(
+             _configuration["Email:From"],
+             _configuration["Email:Password"]
+         );
+         smtp.Send(email);
+         smtp.Disconnect(true);
 
-            Console.WriteLine("🔵 RESPONSE: " + json);
-
-            if (!response.IsSuccessStatusCode)
-                throw new Exception("Gemini API error: " + json);
-
-            var parsed = JsonConvert.DeserializeObject<dynamic>(json);
-
-            if (parsed?.candidates == null || parsed.candidates.Count == 0)
-                throw new Exception("No candidates: " + json);
-
-            return (string)parsed.candidates[0].content.parts[0].text;
-        }
+         Console.WriteLine("✅ Alert email sent");
+     }
+     catch (Exception ex)
+     {
+         Console.WriteLine("❌ Failed to send alert email: " + ex.Message);
+     }
+ }
     }
 
     public class QuestionRequest
