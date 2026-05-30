@@ -162,33 +162,42 @@ export class InterviewPrep {
 
   // ── Interview Flow ────────────────────────────────
   startInterview() {
-    this.isLoading = true;
+  this.isLoading = true;
 
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
 
-    this.http.post<any>('https://prep-interview-4kyo.onrender.com/api/interview/questions', {
-      jobRole: this.jobRole,
-      experience: this.experience
-    }, { headers })
-    .pipe(timeout(300000))
-    .subscribe({
-      next: (res: any) => {
-        this.questions = res.questions;
-        this.step = 2;
-        this.isLoading = false;
-        setTimeout(() => this.speakQuestion(this.questions[0]), 800);
-      },
-      error: (err: any) => {
-        console.log('FULL ERROR:', err);
+  this.http.post<any>('https://localhost:7288/api/interview/questions', {
+    jobRole: this.jobRole,
+    experience: this.experience
+  }, { headers })
+  .subscribe({         // ← no .pipe(timeout) at all
+    next: (res: any) => {
+      console.log('RESPONSE:', res);
+      this.questions = res.questions;
+      this.step = 2;
+      this.isLoading = false;
+      setTimeout(() => this.speakQuestion(this.questions[0]), 800);
+    },
+    error: (err: any) => {
+      console.log('FULL ERROR:', err);
+      console.log('STATUS:', err.status);
+      console.log('ERROR BODY:', err.error);
+
+      if (err.status === 429) {
+        alert('⚠️ AI quota exhausted. Please try again tomorrow.');
+      } else if (err.status === 503) {
+        alert('⚠️ AI is busy. Please try again in a few minutes.');
+      } else {
         alert('Error: ' + err.status + ' - ' + JSON.stringify(err.error));
-        this.isLoading = false;
       }
-    });
-  }
+      this.isLoading = false;
+    }
+  });
+}
 
   submitAnswer() {
     this.stopListening();  // stop mic before submitting
