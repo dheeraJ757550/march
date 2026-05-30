@@ -27,17 +27,10 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy
-            .WithOrigins(
-                "http://localhost:4200",           // local dev
-                "https://preperation-interview.netlify.app/interview",  // ← add your deployed frontend URL
-                "https://preperation-interview.netlify.app/interview/questions"
-            )
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-    });
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
 });
 
 // Twilio
