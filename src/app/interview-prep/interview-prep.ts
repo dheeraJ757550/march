@@ -170,7 +170,7 @@ export class InterviewPrep {
     'Content-Type': 'application/json'
   });
 
-  this.http.post<any>('https://localhost:7288/api/interview/questions', {
+  this.http.post<any>('https://prep-interview-4kyo.onrender.com/api/interview/questions', {
     jobRole: this.jobRole,
     experience: this.experience
   }, { headers })
